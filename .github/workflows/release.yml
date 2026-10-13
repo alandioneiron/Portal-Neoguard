@@ -108,7 +108,7 @@ jobs:
         run: npm run build
 
       - name: Configurar o GitHub Pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
       - name: Empacotar o site para o Pages
         uses: actions/upload-pages-artifact@v5

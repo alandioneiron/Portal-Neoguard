@@ -8,6 +8,11 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ### Adicionado
 
+- Deploy por Release: o servidor segue a última Release `vX.Y.Z` (`portal/deploy/seguir-release.sh` + timer systemd a cada 5 min, com teste próprio no CI); `release.yml` sem GitHub Pages.
+- `portal/deploy/trocar-senha-smtp.sh`: troca a senha do e-mail de envio sem exibi-la, testando o login antes de gravar.
+- Telas da Ficha ajustadas para tablet e celular.
+- Dependabot cobrindo o backend (pip) e o frontend (npm) do Portal.
+- Documentação do Portal: README reescrito para o Portal, guia rápido da Ficha para vendedores, técnicos e CCON (`docs/portal/GUIA-RAPIDO-FICHA.md`) e seção "Portal" no CONTRIBUTING.
 - **Portal Neoguard — Fase 1** (`portal/`): Ficha de Implantação de Alarme Monitorado, fiel ao docx.
   - As 3 etapas com as seções 1.1 a 3.3: tabelas editáveis, checkboxes em grade e campos condicionais.
   - Travas e status automáticos: liberar instalação, concluir instalação e validação da CCON → ATIVO/MONITORADO.
@@ -29,6 +34,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ### Alterado
 
+- Frontend do Portal: react-router 7, Vite 8 e Vitest 5 (`npm audit` sem vulnerabilidades).
 - O cadastro real (BDI, encargos, CCTs) não entra mais no git nem no artefato público. O chat do C.O entrega o `cadastro.json` só para download, e ele vai para o servidor do Portal.
 
 - Convertido de artefato do Claude para site estático. O cadastro, que antes ficava num banco do Claude, passou para arquivos JSON versionados.

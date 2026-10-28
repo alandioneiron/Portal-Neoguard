@@ -1,0 +1,16 @@
+# Portal Neoguard - procura uma Release nova no GitHub a cada 5 minutos.
+# Quem executa é o portal-neoguard-release.service. Instalação: portal/deploy/README.md.
+[Unit]
+Description=Portal Neoguard - procurar Release nova a cada 5 minutos
+
+[Timer]
+# Minutos 0, 5, 10... de toda hora.
+OnCalendar=*:0/5
+# Se a VM estava desligada num horário, roda assim que ligar (Persistent vale para OnCalendar).
+Persistent=true
+# Espalha o disparo em até 30 s, para não bater na API sempre no mesmo segundo.
+RandomizedDelaySec=30
+Unit=portal-neoguard-release.service
+
+[Install]
+WantedBy=timers.target

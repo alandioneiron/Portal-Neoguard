@@ -1,6 +1,8 @@
 import { useState, type ReactElement } from 'react';
 import { render } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router-dom';
+// RouterProvider de 'react-router' (não 'react-router/dom'): no Vitest o subcaminho /dom carrega outra cópia
+// do pacote (ESM x CJS) e quebra os contextos do roteador. Na aplicação (Vite) há uma cópia só.
+import { createMemoryRouter, RouterProvider } from 'react-router';
 import { Provedores } from '../Provedores';
 import { rotas } from '../routes';
 import { ModoProvider } from '../components/ficha/campos';

@@ -1,17 +1,18 @@
 # Como contribuir
 
-Este guia cobre o fluxo de mudança (branch, Pull Request, merge e release), como cadastrar dados e como trocar o modelo da proposta. Para usar o gerador, veja o [README](README.md).
+Este guia cobre o fluxo de mudança (branch, Pull Request, merge e release), o Portal, o cadastro do Gerador de Propostas e a troca do modelo da proposta. Para usar o Gerador, veja o [README](README.md).
 
 ## Fluxo em resumo
 
 ```
-branch → Pull Request → CI verde → merge na main (gera prévia) → Release vX.Y.Z (publica)
+branch → Pull Request → checks verdes → merge na main → Release vX.Y.Z (atualiza o servidor)
 ```
 
-- Toda mudança entra por Pull Request. A `main` é protegida (ver [docs/CONFIGURACAO-GITHUB.md](docs/CONFIGURACAO-GITHUB.md)).
-- Os checks obrigatórios são **"Validação e testes unitários"** e **"Testes E2E"**.
-- Merge na `main` **não publica**. Ele só gera a prévia do site.
+- Toda mudança entra por Pull Request. A `main` é protegida.
+- Os checks obrigatórios são cinco, listados na seção [Portal](#portal).
+- Merge na `main` **não publica**.
 - Produção só muda com uma **Release** com tag `vX.Y.Z`. Pré-release não publica.
+- O Portal e o Gerador de Propostas vão juntos para o servidor: a release atualiza os dois, em até 5 minutos.
 
 ---
 
@@ -31,7 +32,8 @@ Convenção de nomes (minúsculas, com hífen):
 |---|---|---|
 | `feat/` | função nova | `feat/filtro-historico` |
 | `fix/` | correção | `fix/arredondamento-vt` |
-| `dados/` | cadastro: município, CCT ou parâmetros | `dados/municipio-campinas-sp` |
+| `dados/` | cadastro: município, CCT ou parâmetros (mudanças no cadastro vêm do artefato do C.O, veja a seção Cadastro) | `dados/municipio-campinas-sp` |
+| `portal/` | Portal: backend, frontend ou deploy | `portal/ficha-validacao-ccon` |
 
 ## 2. Testar antes do Pull Request
 
@@ -43,17 +45,19 @@ npm start            # http://localhost:8080, confira na tela o que mudou
 npm run test:e2e     # testes no navegador (na primeira vez: npx playwright install chromium)
 ```
 
+Para o Portal, rode também os testes da seção [Portal](#portal).
+
 ## 3. Commit e push
 
 Adicione só os arquivos alterados:
 
 ```
-git add data/municipios.json
-git commit -m "dados: município de Campinas/SP"
-git push -u origin dados/municipio-campinas-sp
+git add index.html js/app.js
+git commit -m "fix: texto do aviso de convenção vencida"
+git push -u origin fix/aviso-convencao
 ```
 
-Recomendado: mensagem com o prefixo do tipo (`feat:`, `fix:` ou `dados:`) e um resumo curto no imperativo.
+Recomendado: mensagem com o prefixo do tipo (`feat:`, `fix:`, `dados:` ou `portal:`) e um resumo curto no imperativo.
 
 ## 4. Abrir o Pull Request
 
@@ -63,7 +67,7 @@ gh pr create --base main --fill
 
 Ou pelo GitHub, que mostra o botão **Compare & pull request** logo após o push. Preencha o modelo de PR que aparece.
 
-Os checks rodam sozinhos. O PR só pode ser mesclado com os dois checks verdes e com a branch atualizada em relação à `main`. Se um check falhar, abra a execução em **Actions**, leia o erro e corrija na mesma branch com um novo commit.
+Os checks rodam sozinhos. O PR só pode ser mesclado com os checks obrigatórios verdes (lista na seção [Portal](#portal)) e com a branch atualizada em relação à `main`. Se um check falhar, abra a execução em **Actions**, leia o erro e corrija na mesma branch com um novo commit.
 
 ## 5. Merge e limpeza
 
@@ -75,19 +79,19 @@ git pull
 git branch -d dados/municipio-campinas-sp
 ```
 
-Depois do merge, o workflow **CI** gera a prévia do site (ver README, seção "Prévia do site").
+Merge na `main` não publica nada. A produção só muda com a release (seção 6).
 
 ## 6. Publicar uma release (produção)
 
-Só a release muda o site que a equipe usa. Antes de publicar, confirme:
+Só a release muda o que a equipe usa. Antes de publicar, confirme:
 
-- a `main` tem o que deve ir para produção e o CI está verde;
+- a `main` tem o que deve ir para produção e os checks estão verdes;
 - o CHANGELOG tem a seção da nova versão (ver abaixo);
-- o cadastro está completo. A release roda a validação em modo estrito, e cadastro vazio falha.
+- o Alan pediu a publicação.
 
 Pela interface do GitHub:
 
-1. Abra o repositório e clique em **Releases**, depois em **Draft a new release**.
+1. Abra o repositório, clique em **Releases** e depois em **Draft a new release**.
 2. Em **Choose a tag**, digite a tag nova (por exemplo `v1.1.0`) e escolha **Create new tag: v1.1.0 on publish**.
 3. Em **Target**, escolha `main`.
 4. Em **Release title**, use a mesma tag (`v1.1.0`).
@@ -95,7 +99,7 @@ Pela interface do GitHub:
 6. Deixe **Set as a pre-release** desmarcado. Pré-release não publica.
 7. Clique em **Publish release**.
 
-Depois, em **Actions**, o workflow **"Release → Produção"** testa em modo estrito, gera o site e publica no GitHub Pages. Quando terminar, abra o site e confira se o topo mostra a versão nova.
+Depois da publicação, o servidor atualiza em até 5 minutos. Para conferir, abra http://172.16.100.35:8090/api/saude na rede da Neoguard: o campo `versao` mostra o commit da release.
 
 Alternativa pelo terminal:
 
@@ -103,7 +107,7 @@ Alternativa pelo terminal:
 gh release create v1.1.0 --target main --title "v1.1.0" --generate-notes
 ```
 
-Uma tag fora do formato `vX.Y.Z` faz o workflow falhar com "Tag inválida". Nesse caso, apague a release e a tag e publique de novo com uma tag válida.
+Uma tag fora do formato `vX.Y.Z` faz o workflow de release falhar com "Tag inválida". Nesse caso, apague a release e a tag e publique de novo com uma tag válida.
 
 ### CHANGELOG antes da release
 
@@ -121,7 +125,21 @@ Antes de publicar, mova os itens da seção **Não publicado** do [CHANGELOG.md]
 
 ---
 
-## Cadastro (`data/`)
+## Cadastro (fora do git)
+
+O cadastro real (parâmetros Neoguard, convenções e municípios) **não vai para o git**. O repositório guarda só o esqueleto vazio em `data/`, e um teste garante isso.
+
+Onde ele fica:
+
+- **Fonte:** o banco do artefato do C.O. Mudanças de cadastro são pedidas ao C.O, que as faz no artefato. A sincronização está em [docs/SINCRONIZAR-ARTEFATO.md](docs/SINCRONIZAR-ARTEFATO.md).
+- **Cópia local:** `cadastro-local/`, ignorada pelo git, gerada pelo importador. Para testar com ela: `npm run start:local`.
+- **Servidor:** `/opt/portal-neoguard/cadastro/`, servida pelo Nginx em `/propostas/data/`. Atualizar o cadastro no servidor não exige deploy nem reinício (ver [portal/deploy/README.md](portal/deploy/README.md), seção "Cadastro real do Gerador").
+
+As tabelas abaixo descrevem os campos de cada arquivo. Valide a cópia local antes de copiar para o servidor:
+
+```
+node scripts/validate-data.mjs cadastro-local
+```
 
 ### Regras gerais
 
@@ -131,17 +149,7 @@ Antes de publicar, mova os itens da seção **Não publicado** do [CHANGELOG.md]
 - **Ids** (de convenção e de município) só têm minúsculas, números e hífen: `limpeza-sp-2027`, `campinas-sp`.
 - Campos extras dentro de um objeto são ignorados. Chave extra no topo de `ccts.json` ou `municipios.json` vira um id e falha na validação (por exemplo, um `_aviso` no topo). Coloque observações no texto do PR, não no arquivo.
 - Não cadastre valor chutado. Se um dado depende de confirmação (por exemplo, o ISS), registre em `alertas` do município. Assim a página exige a conferência do vendedor.
-- Rode `npm run validate` antes de abrir o PR. Erros bloqueiam. Avisos são lembretes: por exemplo, CCT sem `vigencia_fim` ou CCT vencida.
-
-### Situação atual
-
-Hoje `data/config.json` está `null`, e `data/ccts.json` e `data/municipios.json` estão vazios. Por isso:
-
-- a página mostra "Parâmetros Neoguard ainda não cadastrados" e não calcula nada;
-- `npm run validate` passa, com avisos;
-- `npm run validate:release` falha, porque o modo estrito não aceita cadastro vazio.
-
-A primeira release (`v1.0.0`) depende de o cadastro real estar na `main`.
+- Erros de validação bloqueiam. Avisos são lembretes: por exemplo, CCT sem `vigencia_fim` ou CCT vencida.
 
 ### `data/config.json`: parâmetros Neoguard
 
@@ -225,67 +233,18 @@ Regra de validação: ISS, PIS e COFINS somados têm de ficar abaixo de 100%.
 
 ### Cadastrar município novo
 
-1. Confirme que a convenção do município já está em `data/ccts.json`. Se não estiver, cadastre a convenção primeiro (ver próxima seção).
-2. Crie a branch `dados/municipio-<cidade>-<uf>`.
-3. Em `data/municipios.json`, acrescente uma entrada com o id `cidade-uf`:
-
-   ```json
-   "cidade-uf": {
-     "nome": "<nome do município>",
-     "uf": "<UF com duas letras maiúsculas>",
-     "cct": "<id da convenção em ccts.json>",
-     "iss_limp": "<fração, de 0.02 a 0.05>",
-     "iss_mo": "<fração, de 0.02 a 0.05>",
-     "vt_dia": "<R$ por dia>",
-     "vt_obs": "<fonte e forma do VT>",
-     "alertas": []
-   }
-   ```
-
-   Substitua cada `<...>` pelo valor confirmado na fonte, sem aspas nos números.
-
-4. Preencha ISS e VT com a fonte que você conferiu (lei municipal do ISS e tarifa vigente). Se algo ainda não está confirmado, coloque um texto em `alertas`.
-5. Rode `npm run validate` até dar zero erros. Depois rode `npm start`, escolha o município na página e confira o cálculo de um posto.
-6. Abra o PR, espere os dois checks ficarem verdes e faça o merge.
-7. O município só aparece para a equipe depois de uma release nova (patch). Veja a seção "Publicar uma release".
+1. Confirme que a convenção do município já está no cadastro. Se não estiver, peça ao C.O que a inclua antes (ver próxima seção).
+2. Peça ao C.O que inclua o município no artefato, com o id `cidade-uf`, o ISS e o VT conferidos na fonte: lei municipal do ISS e tarifa vigente. Se algo ainda não estiver confirmado, o município leva um texto em `alertas`.
+3. Sincronize o artefato (veja [docs/SINCRONIZAR-ARTEFATO.md](docs/SINCRONIZAR-ARTEFATO.md)) e valide a cópia local com `node scripts/validate-data.mjs cadastro-local` até dar zero erros.
+4. Copie os quatro arquivos para o servidor, como descrito em [portal/deploy/README.md](portal/deploy/README.md) (seção "Cadastro real do Gerador"). Não é preciso fazer deploy.
+5. Abra `/propostas/` no servidor, escolha o município e confira o cálculo de um posto.
 
 ### Atualizar CCT do ano
 
-1. Crie a branch `dados/cct-<uf>-<ano>`.
-2. Em `data/ccts.json`, crie uma entrada nova com id novo (por exemplo `limpeza-sp-2027`). Recomendo não sobrescrever a antiga: o histórico guarda o registro da convenção usada em cada proposta, e manter a entrada antiga deixa esse rastro claro. Modelo:
-
-   ```json
-   "limpeza-sp-2027": {
-     "nome": "<nome da convenção>",
-     "registro": "<número de registro no MTE>",
-     "vigencia": "<período, por exemplo 01/01/2027 a 31/12/2027>",
-     "vigencia_fim": "<AAAA-MM-DD>",
-     "sm": "<R$>",
-     "acumulo": "<fração>",
-     "hnot": "<horas>",
-     "adn": "<fração>",
-     "enc": "<fração>",
-     "vr": "<R$ por dia>",
-     "vr_desc": "<R$ por dia>",
-     "premio": "<R$ por mês>",
-     "cesta": "<R$ por mês>",
-     "ppr": "<R$ por ano>",
-     "social": "<R$ por mês>",
-     "saude": "<R$ por mês>",
-     "intervalo_h": "<horas>",
-     "pisos": [
-       { "id": "<código-da-função>", "nome": "<função>", "piso": "<R$>", "kit": "<R$ ou null>", "tipo": "limp ou mo" }
-     ]
-   }
-   ```
-
-   Substitua cada `<...>` pelo valor da convenção nova, sem aspas nos números. Confira cada função e seu piso na fonte.
-
-3. Em `data/municipios.json`, troque o campo `cct` dos municípios que usam a convenção para o id novo. O validador confirma que o id existe.
-4. Revise os `alertas` de cada município: retire os que já foram resolvidos e acrescente os que a convenção nova exige conferir.
-5. A convenção antiga pode ficar. Só remova se nenhum município apontar para ela, senão o validador acusa o `cct` inexistente.
-6. Vigência e aviso de vencimento: `vigencia_fim` é a data do último dia de vigência. Quando essa data passa, o validador mostra um aviso, e a página mostra o alerta "A convenção cadastrada venceu em ..." e pede confirmação do vendedor. Esse alerta some quando o município passa a apontar para a convenção nova. Se o campo estiver ausente, a página não consegue avisar o vencimento.
-7. Rode `npm run validate`, teste com `npm start` e siga os passos de PR, merge e release do município.
+- Peça ao C.O uma convenção nova com id novo (por exemplo `limpeza-sp-2027`). **Não sobrescreva a antiga**: o histórico guarda o registro da convenção usada em cada proposta. A convenção antiga pode ficar; só pode sair quando nenhum município apontar para ela, senão o validador acusa o `cct` inexistente.
+- Os municípios que usam a convenção passam a apontar para o id novo no campo `cct`. Revise os `alertas` de cada um: retire os resolvidos e acrescente os que a convenção nova exige conferir.
+- `vigencia_fim` é a data do último dia de vigência. Quando ela passa, o validador mostra um aviso, e a página mostra o alerta "A convenção cadastrada venceu em ..." e pede confirmação do vendedor, até o município apontar para a convenção nova. Se o campo estiver ausente, a página não consegue avisar o vencimento.
+- Depois, siga os passos 3 a 5 de "Cadastrar município novo".
 
 ### Textos que vêm do cadastro
 
@@ -338,3 +297,59 @@ Outros pontos do PDF:
 4. Rode `npm test` e `npm run test:e2e`.
 5. Rode `npm run start:teste`, gere uma proposta de teste, baixe o PDF e o DOCX e abra os dois para conferir o layout.
 6. Abra o PR, faça o merge e publique uma release **major**.
+
+---
+
+## Portal
+
+O Portal (pasta `portal/`) roda em Docker no servidor `172.16.100.35`: a API (backend), a tela (frontend) e o Nginx que serve tudo. O contrato da Fase 1 está em [docs/portal/ESPEC-FASE1.md](docs/portal/ESPEC-FASE1.md).
+
+### Checks obrigatórios
+
+Os cinco checks precisam estar verdes para o merge:
+
+| Check | O que roda |
+|---|---|
+| Validação e testes unitários | validação de `data/` e testes unitários do Gerador |
+| Testes E2E | testes do Gerador no navegador |
+| Portal — backend | `pytest` do backend |
+| Portal — frontend | testes e build do frontend |
+| Portal — imagens Docker | build das duas imagens e teste de fumaça da pilha |
+
+Os checks do Portal rodam em todo PR, sem filtro de caminho, para nenhum check obrigatório ficar pendente.
+
+### Fluxo do Portal
+
+```
+branch portal/<assunto> → Pull Request → 5 checks verdes → merge na main (não publica) → Release vX.Y.Z (atualiza o servidor em até 5 min)
+```
+
+Publique a release como na seção 6. O servidor acompanha as releases pelo seguidor (`portal/deploy/seguir-release.sh`, com timer). Comandos e o que fazer se algo falhar estão em [portal/deploy/README.md](portal/deploy/README.md).
+
+### Testar antes do PR
+
+```
+cd portal/backend
+python -m pytest                          # Python 3.12+; antes: pip install -r requirements-dev.txt
+
+cd portal/frontend
+npm test -- --run                         # antes: npm ci
+npm run build
+
+bash portal/deploy/smoke.sh               # pilha em Docker (precisa de Docker com Compose v2)
+```
+
+Antes de qualquer PR, rode também `npm test`, `npm run test:e2e` e `npm run validate` na raiz (seção 2).
+
+### Regras do Portal
+
+- Campo, status, trava ou rota novos: atualize `docs/portal/ESPEC-FASE1.md` no mesmo PR, junto com os testes.
+- Mudança no modelo do banco: crie uma migração (`alembic revision --autogenerate -m "..."`, veja [portal/backend/README.md](portal/backend/README.md)). Um teste confere que a migração e os modelos batem.
+- Variável de ambiente nova: atualize o `.env.example` da parte e o README correspondente.
+- Nunca commite `.env`, senhas, tokens ou o cadastro real. O SMTP fica só no `.env` do servidor (`/opt/portal-neoguard/.env`).
+
+### Servidor
+
+- Rollback: `deploy.sh --ref <tag>`. Cuidado com o banco: o rollback do código não desfaz migrações (veja [portal/deploy/README.md](portal/deploy/README.md)).
+- Nunca derrube a porta 8090 antes de o Alan dizer que o projeto terminou.
+- A VM também roda o Access-Control. Nos comandos Docker, use sempre `-p portal-neoguard` e `-f portal/deploy/docker-compose.yml`. Não use `docker system prune` nem `docker compose down -v`.

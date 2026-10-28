@@ -1,6 +1,6 @@
 // Lista de fichas: busca, filtro por status, "Nova ficha".
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router';
 import { Alert, App, Button, Empty, Input, Select, Table } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { ApiError, api, STATUS_LISTA, type FichaResumo, type Status } from '../api';
@@ -60,6 +60,7 @@ export function FichasLista() {
       title: 'Código',
       dataIndex: 'codigo',
       width: 140,
+      fixed: 'left', // na rolagem lateral (celular) o código continua visível
       sorter: (a, b) => a.codigo.localeCompare(b.codigo),
       render: (codigo: string, f) => <Link to={`/fichas/${f.id}`}>{codigo}</Link>,
     },
@@ -118,7 +119,7 @@ export function FichasLista() {
         />
         <Select<Status | ''>
           aria-label="Filtrar por status"
-          style={{ width: 260 }}
+          style={{ width: 260, maxWidth: '100%' }}
           value={status}
           onChange={setStatus}
           options={[
@@ -149,7 +150,7 @@ export function FichasLista() {
         columns={colunas}
         dataSource={fichas}
         pagination={{ pageSize: 20, hideOnSinglePage: true, showSizeChanger: false }}
-        scroll={{ x: 900 }}
+        scroll={{ x: 1000 }}
         style={{ marginTop: 10 }}
         locale={{
           emptyText: (

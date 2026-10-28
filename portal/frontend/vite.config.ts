@@ -28,7 +28,7 @@ export default defineConfig({
     include: ['src/**/*.test.{ts,tsx}'],
     // antd + jsdom é pesado; máquinas lentas (CI) precisam de folga.
     pool: 'forks',
-    poolOptions: { forks: { execArgv: ['--max-old-space-size=4096'] } },
+    execArgv: ['--max-old-space-size=4096'],
     testTimeout: 60000,
     hookTimeout: 60000,
   },

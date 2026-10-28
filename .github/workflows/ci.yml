@@ -2,13 +2,16 @@ name: CI
 
 # Roda a bateria de testes em todo Pull Request para a main e em todo push na main.
 # Merge na main NÃO publica em produção: apenas gera uma prévia do site (artifact).
-# Produção só sai por Release (ver release.yml).
+# Produção só muda quando uma Release vX.Y.Z é publicada: o release.yml reaproveita esta mesma
+# bateria (workflow_call) e o servidor implanta a tag sozinho (ver portal/deploy/README.md).
 on:
   pull_request:
     branches: [main]
   push:
     branches: [main]
   workflow_dispatch:
+  # Chamado pelo release.yml: roda a bateria completa sobre o commit da tag da Release.
+  workflow_call:
 
 permissions:
   contents: read
@@ -148,6 +151,9 @@ jobs:
       - name: Teste de fumaça da pilha (docker compose)
         run: bash portal/deploy/smoke.sh
 
+      - name: Teste do seguidor de Releases (seguir-release.sh)
+        run: bash portal/deploy/teste-seguir-release.sh
+
   previa:
     name: Prévia do site
     # Só depois do merge (push na main) e com tudo verde.
@@ -193,5 +199,5 @@ jobs:
             echo "- Artifact: **site-previa** (guardado por 14 dias)"
             echo
             echo "> Esta é apenas uma **prévia** para conferência. O merge na \`main\` **não** publica em produção."
-            echo "> A produção (GitHub Pages) só é atualizada quando uma **Release** nova é publicada."
+            echo "> A produção só é atualizada quando uma **Release** nova é publicada (o servidor implanta a tag sozinho em até 5 minutos)."
           } >> "$GITHUB_STEP_SUMMARY"

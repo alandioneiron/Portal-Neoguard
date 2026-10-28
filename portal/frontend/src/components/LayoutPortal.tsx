@@ -1,5 +1,5 @@
 // Moldura do portal: aviso fixo, barra com logo/menu e identificação de quem preenche.
-import { Link, NavLink, Outlet } from 'react-router-dom';
+import { Link, NavLink, Outlet } from 'react-router';
 import { Button, Tag } from 'antd';
 import logo from '../assets/logo-neoguard.png';
 import { MOCK_ATIVO } from '../api';

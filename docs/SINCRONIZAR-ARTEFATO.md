@@ -2,7 +2,7 @@
 
 O Gerador nasce e evolui num artefato do Claude mantido pelo C.O:
 `https://claude.ai/artifact/Dbtpr8sv716RcmZ5Ww6zGk`.
-Este repositório é a versão publicada para os vendedores (https://propostas.neoguard.com.br).
+Este repositório (Portal Neoguard) publica o Gerador para os vendedores dentro do Portal, em `/propostas/` (http://172.16.100.35:8090/propostas/).
 
 O chat do C.O não consegue enviar nada ao GitHub: ele roda em outra conta do Claude, sem git. Por isso o caminho é:
 
@@ -11,7 +11,7 @@ C.O muda o artefato → o chat dele publica a versão + NOTAS-DA-VERSAO.md e ent
   → C.O avisa o Alan ("pronto para o GitHub")
   → Alan pede ao Claude Code nesta pasta: "C.O terminou, sincroniza o artefato"
   → Claude Code lê o artefato, importa, testa e abre o PR sync/artefato-<versão>
-  → CI verde → merge na main → (quando o Alan quiser) Release vX.Y.Z → site atualizado
+  → CI verde → merge na main → (quando o Alan quiser) Release vX.Y.Z → Portal atualizado no servidor
 ```
 
 O banco do artefato (parâmetros, CCTs, municípios) só é legível pela conta do C.O. Por isso o chat dele gera uma cópia em `cadastro.json` para download. O C.O manda esse arquivo ao Alan por canal interno. O cadastro (BDI, encargos) NÃO vai para o artefato, que é público, nem para o git: fica só no servidor do Portal.
@@ -20,7 +20,7 @@ O banco do artefato (parâmetros, CCTs, municípios) só é legível pela conta 
 
 ```text
 A partir de agora este artefato (Gerador de Propostas Facilities) também é publicado para os
-vendedores como site, a partir do repositório GitHub alandioneiron/Gerador-de-Processo. Quem
+vendedores no Portal Neoguard, a partir do repositório GitHub alandioneiron/Portal-Neoguard. Quem
 converte é outro chat (Claude Code do Alan), que lê os ARQUIVOS PUBLICADOS deste artefato, mas não
 consegue ler o banco de dados daqui. Em toda rodada de mudanças, siga estas regras:
 
@@ -29,7 +29,7 @@ consegue ler o banco de dados daqui. Em toda rodada de mudanças, siga estas reg
 2. calc.js: todo o cálculo de preço fica nele, como funções puras (sem DOM e sem window.claude),
    mantendo "var NG = ..." e a última linha
    if (typeof module !== "undefined") module.exports = NG;
-   Esse arquivo vai para o site sem alteração.
+   Esse arquivo vai para o Portal sem alteração.
 3. Modelo DOCX (modelo.js): use cliente e valores de exemplo FICTÍCIOS. Mantenha no index.html a
    conferência do modelo com x.indexOf("Cliente: <cliente de exemplo>")<0 e
    x.indexOf("<data por extenso>.")<0, porque o conversor usa essas duas frases para achar os campos.
@@ -52,7 +52,7 @@ consegue ler o banco de dados daqui. Em toda rodada de mudanças, siga estas reg
 6. No fim, responda com a linha "PRONTO PARA O GITHUB – versão <data e hora>" e um resumo de 3
    linhas, para o C.O repassar ao Alan.
 
-O repositório e o site são públicos: nunca coloque nos arquivos publicados nomes de clientes
+O repositório e o artefato são públicos: nunca coloque nos arquivos publicados nomes de clientes
 reais, propostas emitidas ou planilhas internas.
 ```
 
@@ -70,10 +70,10 @@ Procedimento completo em [`CLAUDE.md`](../CLAUDE.md). Em resumo:
    - converte o `tpl.js` em `assets/modelo-proposta.pdf` e confere as 12 páginas;
    - distribui o `cadastro.json` em `cadastro-local/` (pasta fora do git) e roda o validador. Para o Portal, essa pasta é copiada para `/opt/portal-neoguard/cadastro/` no servidor. Para testar local: `npm run start:local`;
    - guarda `index.html` e `NOTAS-DA-VERSAO.md` em `upstream/` e atualiza `upstream/artefato.json`.
-4. Porta à mão o que mudou no `index.html` do artefato (`git diff upstream/index.html`) para `index.html` e `js/app.js`. O site não tem `window.claude`: o banco virou `data/*.json`, os downloads são do navegador e o histórico é local.
+4. Porta à mão o que mudou no `index.html` do artefato (`git diff upstream/index.html`) para `index.html` e `js/app.js`. O Gerador do Portal não tem `window.claude`: o banco virou `data/*.json` (cadastro real só no servidor), os downloads são do navegador e o histórico é local.
 5. Campo novo no banco: atualiza o validador, a referência de campos do `CONTRIBUTING.md` e, se mexer no cálculo, os testes.
 6. `npm test`, `npm run test:e2e` e `npm run validate:release`; atualiza o `CHANGELOG.md`; abre o PR e mescla quando o CI ficar verde.
-7. A Release (que atualiza o site) só sai quando o Alan pedir.
+7. A Release (que atualiza o Portal no servidor) só sai quando o Alan pedir.
 
 ## Se a leitura do artefato falhar
 

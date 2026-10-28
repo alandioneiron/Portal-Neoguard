@@ -1,7 +1,12 @@
 name: Release → Produção
 
-# Única forma de publicar em produção (GitHub Pages): publicar uma Release com tag vX.Y.Z.
-# Pré-lançamentos (prerelease) são ignorados.
+# Única forma de levar uma versão para produção: publicar uma Release com tag vX.Y.Z, criada a
+# partir da main. Merge na main NÃO publica. Pré-lançamentos (prerelease) são ignorados.
+#
+# O deploy é por PULL. O servidor (172.16.100.35) fica na rede interna e o GitHub não consegue
+# entrar nele; então é o servidor que consulta a última Release a cada 5 minutos
+# (portal-neoguard-release.timer, ver portal/deploy/README.md) e implanta a tag.
+# Este workflow só CONFERE e TESTA a Release: ele não acessa o servidor nem publica nada.
 on:
   release:
     types: [published]
@@ -9,17 +14,12 @@ on:
 permissions:
   contents: read
 
-# Nunca cancelar um deploy em andamento; releases seguidas entram em fila.
-concurrency:
-  group: pages
-  cancel-in-progress: false
-
 jobs:
-  testar:
-    name: Testar a Release
+  conferir:
+    name: Conferir a tag
     if: ${{ !github.event.release.prerelease }}
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 5
     steps:
       - name: Conferir o formato da tag (vX.Y.Z)
         env:
@@ -47,101 +47,36 @@ jobs:
           fi
           echo "Commit $GITHUB_SHA está na main."
 
-      - name: Configurar Node.js 22
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Validar os dados em modo estrito (cadastro não pode estar vazio)
-        run: npm run validate:release
-
-      - name: Testes unitários
-        run: npm test
-
-      - name: Instalar o Chromium do Playwright
-        run: npx playwright install --with-deps chromium
-
-      - name: Testes E2E (Playwright)
-        run: npm run test:e2e
-
-      - name: Guardar relatório e evidências da falha
-        if: failure()
-        uses: actions/upload-artifact@v6
-        with:
-          name: playwright-falha
-          path: |
-            playwright-report/
-            test-results/
-          if-no-files-found: ignore
-          retention-days: 7
-
-  build:
-    name: Gerar o site
+  # Toda a bateria do ci.yml (dados, unitários, E2E, backend, frontend, imagens Docker e fumaça).
+  testar:
+    name: Testar a Release
+    needs: conferir
     if: ${{ !github.event.release.prerelease }}
-    needs: testar
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: read
-      # configure-pages consulta/configura o site do Pages.
-      pages: write
-    steps:
-      - name: Baixar o código
-        uses: actions/checkout@v7
+    uses: ./.github/workflows/ci.yml
 
-      - name: Configurar Node.js 22
-        uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Instalar dependências
-        run: npm ci
-
-      - name: Gerar o site (dist/)
-        env:
-          RELEASE_TAG: ${{ github.event.release.tag_name }}
-        run: npm run build
-
-      - name: Configurar o GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Empacotar o site para o Pages
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: dist
-
-  deploy:
-    name: Publicar em produção
+  pronta:
+    name: Release pronta para o servidor
+    needs: [conferir, testar]
     if: ${{ !github.event.release.prerelease }}
-    needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    timeout-minutes: 5
     steps:
-      - name: Publicar no GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v5
-
       - name: Resumo
         env:
           TAG: ${{ github.event.release.tag_name }}
-          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
         run: |
           {
-            echo "## Publicado em produção"
+            echo "## Release pronta para o servidor"
             echo
             echo "- Versão: \`${TAG}\`"
-            echo "- Endereço: ${PAGE_URL}"
+            echo "- Commit: \`${GITHUB_SHA}\`"
             echo
-            echo "> A versão publicada aparece no topo da página (ao lado do status de conexão)."
+            echo "O servidor consulta as Releases a cada 5 minutos e **implanta a tag \`${TAG}\` em até 5 minutos**."
+            echo
+            echo "Para acompanhar, no servidor:"
+            echo
+            echo "- \`tail -f /opt/portal-neoguard/deploy.log\`"
+            echo "- \`curl -fsS http://localhost:8090/api/saude\` (o campo \`versao\` mostra o commit em produção)"
+            echo
+            echo "> Este workflow não acessa o servidor: ele só conferiu e testou a Release."
           } >> "$GITHUB_STEP_SUMMARY"

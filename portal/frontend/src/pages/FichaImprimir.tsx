@@ -1,6 +1,6 @@
 // Versão de impressão (A4) da ficha: mesmo layout do docx, para o navegador salvar em PDF.
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router';
 import { Alert, Button, Spin } from 'antd';
 import { ApiError, api, type Evento, type Ficha } from '../api';
 import { CabecalhoPagina, IntroFicha } from '../components/ficha/Cabecalho';

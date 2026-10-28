@@ -1,0 +1,22 @@
+# Portal Neoguard - implanta a última Release publicada no GitHub (deploy por "pull").
+# Quem dispara é o portal-neoguard-release.timer (a cada 5 minutos). Instalação: portal/deploy/README.md.
+#
+# ATENÇÃO: troque User= pelo usuário que é dono de /opt/portal-neoguard e está no grupo "docker"
+# (o mesmo que já roda o deploy.sh à mão). O comando de instalação do README já faz isso com sed.
+# Não use root: o repositório pertence a outro usuário e o git recusa trabalhar nele ("dubious ownership").
+[Unit]
+Description=Portal Neoguard - implantar a ultima Release publicada no GitHub
+Documentation=https://github.com/alandioneiron/Portal-Neoguard/blob/main/portal/deploy/README.md
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=SUBSTITUA_PELO_USUARIO
+WorkingDirectory=/opt/portal-neoguard
+ExecStart=/bin/bash /opt/portal-neoguard/repo/portal/deploy/seguir-release.sh
+# Um build do Docker pode demorar; passou disso, algo travou.
+TimeoutStartSec=30min
+# Não atrapalha o Access-Control, que roda na mesma VM.
+Nice=10
+SyslogIdentifier=portal-neoguard-release

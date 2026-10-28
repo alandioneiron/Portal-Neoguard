@@ -24,3 +24,39 @@ updates:
     labels:
       - dependências
     open-pull-requests-limit: 5
+
+  # Portal: backend (FastAPI, SQLAlchemy, Alembic... em portal/backend/requirements*.txt).
+  # As atualizações menores e de patch vêm juntas em um único PR por semana; as maiores
+  # (major) continuam em PRs separados, para serem revisadas uma a uma.
+  - package-ecosystem: pip
+    directory: /portal/backend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    labels:
+      - dependências
+    open-pull-requests-limit: 5
+    groups:
+      portal-backend-menores:
+        update-types:
+          - minor
+          - patch
+
+  # Portal: frontend (React + Vite, em portal/frontend/package.json).
+  - package-ecosystem: npm
+    directory: /portal/frontend
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: America/Sao_Paulo
+    labels:
+      - dependências
+    open-pull-requests-limit: 5
+    groups:
+      portal-frontend-menores:
+        update-types:
+          - minor
+          - patch

@@ -1,7 +1,7 @@
 // Editor da ficha: topo com a faixa de etapas, abas por etapa, somente leitura por status,
 // ações com travas, aviso de alterações não salvas e histórico.
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Link, useBlocker, useParams, useSearchParams } from 'react-router-dom';
+import { Link, useBlocker, useParams, useSearchParams } from 'react-router';
 import { Alert, App, Button, Spin, Tabs, Timeline, Tooltip } from 'antd';
 import type { AcaoComTrava, Evento, Status } from '../api';
 import { Etapa1Corpo } from '../components/ficha/Etapa1Corpo';

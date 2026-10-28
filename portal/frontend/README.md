@@ -1,6 +1,6 @@
 # Portal Neoguard — frontend (Fase 1)
 
-SPA da **Ficha de Implantação de Alarme Monitorado**: React 18 + Vite + TypeScript (strict) + Ant Design 5 (pt_BR, dayjs) + react-router 6. Contrato em [`docs/portal/ESPEC-FASE1.md`](../../docs/portal/ESPEC-FASE1.md) (seções 2, 3, 4 e 6). Textos da interface em PT-BR. Versões fixadas no `package.json`.
+SPA da **Ficha de Implantação de Alarme Monitorado**: React 18 + Vite + TypeScript (strict) + Ant Design 5 (pt_BR, dayjs) + react-router 7 (pacote `react-router`). Contrato em [`docs/portal/ESPEC-FASE1.md`](../../docs/portal/ESPEC-FASE1.md) (seções 2, 3, 4 e 6). Textos da interface em PT-BR. Versões fixadas no `package.json`.
 
 ## Rotas
 
@@ -13,6 +13,8 @@ SPA da **Ficha de Implantação de Alarme Monitorado**: React 18 + Vite + TypeSc
 | `/propostas/` | Gerador de Propostas: link comum, fora do SPA |
 
 ## Desenvolvimento
+
+Requer Node 22.12 ou mais novo (Vite 8 e Vitest 5; o Docker e o CI usam Node 22).
 
 ```bash
 cd portal/frontend
@@ -58,6 +60,7 @@ src/
 - **Identificação**: sem nome e e-mail no navegador, o modal "Quem está preenchendo?" abre antes de qualquer escrita.
 - **Alterações não salvas**: aviso ao sair da ficha (roteador de dados + `beforeunload`) e ponto laranja na aba.
 - **Enviar por e-mail**: botão no topo e no rodapé da Etapa 1; salva o que estiver pendente, abre o modal (destinatários só leitura, mensagem opcional, nota do Reply-To) e chama `POST /acoes/enviar-email` (sem `versao`). Erro 502 mostra o `detail` do backend.
+- **Telas pequenas (tablet e celular)**: a página nunca rola de lado; só as tabelas editáveis têm rolagem horizontal própria (barra dourada sempre visível). As grades de campos caem para 2 colunas (até 820 px) e 1 coluna (até 560 px); os checkboxes de 3 colunas (1.7) viram 2 no celular e os de 2 colunas (rótulos longos) viram 1. Até 820 px a barra do topo é compacta e deixa de ficar fixa; o rodapé de ações fica fixo no tablet (com no máximo 30% da altura da janela, a lista de faltas rola por dentro) e vira o fim da ficha no celular (até 560 px) e com a janela baixa (celular deitado), com botões em duas colunas. Campos usam fonte de 16 px até 820 px (o iOS não dá zoom ao focar). Modais cabem na largura do celular. Regras em `src/styles/ficha.css` (seção "responsivo").
 - **Impressão**: `/fichas/:id/imprimir` reaproveita os mesmos componentes em modo texto; o navegador gera o PDF (Chrome/Edge 131+ mostram "Página X de Y"). Bloco de assinaturas com o autor e a data das ações.
 
 ## Testes

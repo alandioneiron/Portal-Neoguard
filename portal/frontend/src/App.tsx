@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import { createBrowserRouter } from 'react-router';
+import { RouterProvider } from 'react-router/dom';
 import { Provedores } from './Provedores';
 import { rotas } from './routes';
 
@@ -8,7 +9,7 @@ export default function App() {
   const roteador = useMemo(() => createBrowserRouter(rotas), []);
   return (
     <Provedores>
-      <RouterProvider router={roteador} future={{ v7_startTransition: true }} />
+      <RouterProvider router={roteador} />
     </Provedores>
   );
 }

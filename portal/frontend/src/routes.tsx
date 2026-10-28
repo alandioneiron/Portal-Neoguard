@@ -1,4 +1,4 @@
-import { Link, Navigate, type RouteObject } from 'react-router-dom';
+import { Link, Navigate, type RouteObject } from 'react-router';
 import { LayoutPortal } from './components/LayoutPortal';
 import { FichaEditor } from './pages/FichaEditor';
 import { FichaImprimir } from './pages/FichaImprimir';

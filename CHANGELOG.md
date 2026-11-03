@@ -8,6 +8,7 @@ Formato baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). 
 
 ### Adicionado
 
+- Método tech-lead-vault adotado (ADR-0007): `docs/HANDOFF.md`, registro de decisões `docs/decisoes/` (ADRs 0001 a 0007), `docs/LOG-SESSOES-IA.md`, `docs/ROADMAP.md`, `docs/checklists/` (Definição de Pronto e promoção para produção) e o modelo de issue "Tarefa".
 - Deploy por Release: o servidor segue a última Release `vX.Y.Z` (`portal/deploy/seguir-release.sh` + timer systemd a cada 5 min, com teste próprio no CI); `release.yml` sem GitHub Pages.
 - `portal/deploy/trocar-senha-smtp.sh`: troca a senha do e-mail de envio sem exibi-la, testando o login antes de gravar.
 - Telas da Ficha ajustadas para tablet e celular.
